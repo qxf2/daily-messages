@@ -7,3 +7,8 @@ A collection of messages, reminders and questions that need to be socialized wit
 2. Start the app `uvicorn main:app`
 3. To check if the app started, in a new terminal `curl http://127.0.0.1:8000/message`
 4. If all goes well, you should see a message displayed
+
+### How to run test
+
+1. Run the command `coverage run -m pytest` for running test cases.
+2. To check the coverage, you can run `coverage report`-(Note- As a practice we run the coverage for unit tests only.)
