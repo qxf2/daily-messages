@@ -3,3 +3,5 @@ pytest==6.0.1
 coverage==5.2.1
 uvicorn==0.11.8
 requests==2.24.0
+Flask==1.1.2
+pact-python==1.2.6
