@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 print(Format().__dict__)
 
-pact = Consumer('Consumer').has_pact_with(Provider('Provider'))
+pact = Consumer('qxf2-employee-messages').has_pact_with(Provider('Daily-Messages-microservices'))
 pact.start_service()
 atexit.register(pact.stop_service)
 
