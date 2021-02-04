@@ -1,11 +1,11 @@
 """
 Contract test for daily messages
 """
+import os
 import random
 import logging
 import atexit
 import unittest
-import pytest
 import requests
 from pact import Consumer, Provider, Format
 from messages import reminders
@@ -16,8 +16,12 @@ log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 print(Format().__dict__)
 
+#Declaring PACT directory
+REPO_DIR = os.path.dirname(os.path.dirname(__file__))
+PACT_DIR = os.path.join(REPO_DIR,'tests')
+
 pact = Consumer('Qxf2 employee messages lambda').\
-    has_pact_with(Provider('Qxf2 daily messages microservices'))
+    has_pact_with(Provider('Qxf2 daily messages microservices'),pact_dir=PACT_DIR, log_dir=PACT_DIR)
 pact.start_service()
 atexit.register(pact.stop_service)
 

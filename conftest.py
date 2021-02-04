@@ -5,7 +5,7 @@ Defining pytest session details
 import os
 import sys
 import pytest
-import utils.delete_pickle_file as delete
+import utils.delete_test_log_files as delete
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def pytest_sessionstart(session):
@@ -33,3 +33,4 @@ def pytest_sessionfinish(session):
     if failed_amount == 0:
         print(f'\n{failed_amount} failure results')
         delete.delete_pickle_file()
+        delete.delete_pact_json_file()

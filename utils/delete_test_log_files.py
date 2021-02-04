@@ -7,9 +7,11 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 #Declaring directory
 REPO_DIR = os.path.dirname(os.path.dirname(__file__))
 MESSAGES_DIR = os.path.join(REPO_DIR, 'messages')
+TESTS_DIR = os.path.join(REPO_DIR, 'tests')
 
 # Declaring files to delete
-FILE_DELETE = ['senior_qa_training.pickle']
+PICKLE_FILE_DELETE = ['senior_qa_training.pickle']
+PACT_JSON = ['qxf2_employee_messages_lambda-qxf2_daily_messages_microservices.json']
 
 # Delete file
 def delete_file(file_name):
@@ -29,4 +31,9 @@ def delete_files_in_dir(directory, files):
 # Delete pickle file
 def delete_pickle_file():
     "The method will delete pickle file"
-    delete_files_in_dir(MESSAGES_DIR, FILE_DELETE)
+    delete_files_in_dir(MESSAGES_DIR, PICKLE_FILE_DELETE)
+
+# Delete json file
+def delete_pact_json_file():
+    "This method will delete pact json file"
+    delete_files_in_dir(TESTS_DIR, PACT_JSON)
