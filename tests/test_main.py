@@ -3,11 +3,12 @@ Test for main page using fastapi test client.
 """
 import os
 import sys
+from unittest.mock import patch
 from fastapi.testclient import TestClient
 import main
-import messages
 from main import app
 from messages import reminders
+from messages import senior_qa_training
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Declaring test client
@@ -71,3 +72,34 @@ def test_get_sep20_message_text_check():
     with open(main.SEP20_INTERNS_FILE, 'r') as file_handler:
         lines = [line.strip() for line in file_handler]
     assert message['msg'] in lines
+
+# Test for trainig status code
+def test_get_trainig():
+    "asserting status code"
+    response = client.get("/training")
+    assert response.status_code == 200
+
+# Test for asserting message with senior_qa_training messages
+def test_get_senior_qa_training_message_text_check():
+    "asserting message text check"
+    response = client.get("/training")
+    message = response.json()
+    assert response.json()["msg"] != ''
+    lines = senior_qa_training.messages
+    assert message['msg'] in lines
+
+# Test for checking first message shown after first cycle is completed.
+@patch('messages.senior_qa_training.messages', ['msg1', 'msg2'])
+@patch('main.get_senior_qa_training_user_index')
+def test_get_senior_training_unique_message(mock_get_index):
+    "Test that the senior QA training messages cycle"
+    mock_get_index.return_value = {'Qxf2':0}
+
+    result = main.get_snior_qa_training_message('Qxf2')
+    assert result['msg'] == 'msg1', f"{result['msg']}"
+
+    result = main.get_snior_qa_training_message('Qxf2')
+    assert result['msg'] == 'msg2', f"{result['msg']}"
+
+    result = main.get_snior_qa_training_message('Qxf2')
+    assert result['msg'] == 'msg1', f"{result['msg']}"
