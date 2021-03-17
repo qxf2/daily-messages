@@ -1,14 +1,17 @@
 """
 Test for main page using fastapi test client.
 """
+import datetime
 import os
 import sys
 from unittest.mock import patch
 from fastapi.testclient import TestClient
+from freezegun import freeze_time
 import main
 from main import app
 from messages import reminders
 from messages import senior_qa_training
+from messages import comments_reviewer
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Declaring test client
@@ -103,3 +106,23 @@ def test_get_senior_training_unique_message(mock_get_index):
 
     result = main.get_snior_qa_training_message('Qxf2')
     assert result['msg'] == 'msg1', f"{result['msg']}"
+
+# Test for comment-reviewers status code
+def test_get_comments():
+    "asserting status code"
+    response = client.get("/comment-reviewers")
+    assert response.status_code == 200
+
+# Test for checking message
+def test_get_comment_reviewers():
+    "asserting message as per date"
+    response = client.get("/comment-reviewers")
+    message = response.json()
+    assert response.json()["msg"] != ''
+    today= main.get_today_date()
+    if today in comments_reviewer.messages.keys():
+        lines = comments_reviewer.messages.get(today, [''])
+        assert message['msg'] in lines
+        print(message['msg'])
+    else:
+        print(f'For {today} there is no comment reviewer message')
