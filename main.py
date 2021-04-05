@@ -8,6 +8,7 @@ import random
 from fastapi import FastAPI
 from messages import reminders
 from messages import senior_qa_training
+from messages import comments_reviewer
 app = FastAPI()
 
 CURR_FILE_PATH = os.path.dirname(os.path.abspath(__file__))
@@ -44,6 +45,10 @@ def set_senior_qa_training_user_index(user_index_dict):
 def get_weekday():
     "Return the weekday"
     return datetime.datetime.today().weekday()
+
+def get_today_date():
+    "Return today's date"
+    return datetime.datetime.today().strftime('%Y-%m-%d')
 
 def get_messages_from_file(filename):
     "Return a list of culture related messages"
@@ -99,3 +104,15 @@ def get_snior_qa_training_message(user: str = ''):
         message = random.choice(lines).strip()
 
     return {'msg': message}
+
+@app.get("/comment-reviewers")
+def get_comment_reviewers():
+    "Returns message including comment reviewers names"
+    today= get_today_date()
+    if today in comments_reviewer.messages.keys():
+        lines = comments_reviewer.messages.get(today, [''])
+        message = lines
+    else:
+        message = "Either today is not Thursday or data is not available for this date"
+
+    return {'msg':message}
