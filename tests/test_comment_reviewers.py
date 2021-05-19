@@ -1,27 +1,21 @@
 """
-Code level tests for comment reviewer's endpoint
+Unit tests for comment reviewer's endpoint
 """
-import datetime
-from unittest.mock import patch
 import main
+from unittest.mock import patch
 from messages import comments_reviewer
 from freezegun import freeze_time
 
 @freeze_time("2021-03-18")
+@patch('messages.comments_reviewer.messages',{'2021-03-18':"Today's comment reviewer's are A and B"})
 def test_get_comment_reviewers():
     "asserting message as per date"
-    today = "2021-03-18"
-    print(today)
     message = main.get_comment_reviewers()
-    lines = comments_reviewer.messages.get(today, [''])
-    assert message['msg'] in lines
-    print(message['msg'])
+    assert message['msg'] == "Today's comment reviewer's are A and B"
 
 @freeze_time("2021-03-29")
+@patch('messages.comments_reviewer.messages',{'2021-03-29':"No comment reviewer's for today"})
 def test_no_comment_reviewers():
     "asserting message as per date"
-    today = "2021-03-29"
-    print(today)
     message = main.get_comment_reviewers()
-    assert message['msg']=="Either today is not Thursday or data is not available for this date"
-    print(message['msg'])
+    assert message['msg']=="No comment reviewer's for today"

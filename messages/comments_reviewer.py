@@ -11,4 +11,12 @@ messages = { '2021-03-18':"<b>@all</b>, Comment reviewers for next week are- Rah
             '2021-05-27':"<b>@all</b>, Comment reviewers for next week are- Indira and Raghava.",
             '2021-06-03':"<b>@all</b>, Comment reviewers for next week are- Annapoorani and Rohan J.",
             '2021-06-10':"<b>@all</b>, Comment reviewers for next week are- Shivahari and Akkul.",
+            '2021-06-17':"<b>@all</b>, Comment reviewers for next week are- Avinash and Nilaya.",
+            '2021-06-24':"<b>@all</b>, Comment reviewers for next week are- Smitha and Rohan J.",
+            '2021-07-01':"<b>@all</b>, Comment reviewers for next week are- Rohini and Preedhi.",
+            '2021-07-08':"<b>@all</b>, Comment reviewers for next week are- Rohan D. and Mohan.",
+            '2021-07-15':"<b>@all</b>, Comment reviewers for next week are- Drishya and Raghava.",
+            '2021-07-22':"<b>@all</b>, Comment reviewers for next week are- Shivahari and Rahul.",
+            '2021-07-29':"<b>@all</b>, Comment reviewers for next week are- Indira and Sravanti.",
+            '2021-08-05':"<b>@all</b>, Comment reviewers for next week are- Annapoorani and Akkul.",
             }
