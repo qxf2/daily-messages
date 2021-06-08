@@ -4,7 +4,11 @@ Test for main page using fastapi test client.
 import datetime
 import os
 import sys
+from datetime import date
+import pytest
 from unittest.mock import patch
+from unittest.mock import Mock
+import mock
 from fastapi.testclient import TestClient
 from freezegun import freeze_time
 import main
@@ -12,6 +16,8 @@ from main import app
 from messages import reminders
 from messages import senior_qa_training
 from messages import comments_reviewer
+from utils.custom_exception import RecursionDepthLimitException
+from messages import desk_exercises
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Declaring test client
@@ -107,6 +113,38 @@ def test_get_senior_training_unique_message(mock_get_index):
     result = main.get_snior_qa_training_message('Qxf2')
     assert result['msg'] == 'msg1', f"{result['msg']}"
 
+# Test for checking first message shown after first cycle is completed for /desk-exercise endpoint
+@patch('messages.desk_exercises.messages', ['msg1', 'msg2'])
+@patch('main.get_desk_exercise_index')
+def test_get_desk_exercise_message(mock_get_index):
+    "Test desk exercise messages cycle"
+    mock_get_index.return_value = {'exercise':0}
+
+    result = main.get_desk_exercise_message('exercise')
+    assert result['msg'] == 'msg1', f"{result['msg']}"
+
+    result = main.get_desk_exercise_message('exercise')
+    assert result['msg'] == 'msg2', f"{result['msg']}"
+
+    result = main.get_desk_exercise_message('exercise')
+    assert result['msg'] == 'msg1', f"{result['msg']}"
+
+# Test for checking first message shown after first cycle is completed for /desk-exercise endpoint
+@patch('messages.desk_exercises.messages', ['msg1', 'msg2'])
+@patch('main.get_desk_exercise_index')
+def test_get_desk_exercise_message(mock_get_index):
+    "Test desk exercise messages cycle"
+    mock_get_index.return_value = {'exercise':0}
+
+    result = main.get_desk_exercise_message('exercise')
+    assert result['msg'] == 'msg1', f"{result['msg']}"
+
+    result = main.get_desk_exercise_message('exercise')
+    assert result['msg'] == 'msg2', f"{result['msg']}"
+
+    result = main.get_desk_exercise_message('exercise')
+    assert result['msg'] == 'msg1', f"{result['msg']}"
+
 # Test for comment-reviewers status code
 def test_get_comments():
     "asserting status code"
@@ -117,12 +155,108 @@ def test_get_comments():
 def test_get_comment_reviewers():
     "asserting message as per date"
     response = client.get("/comment-reviewers")
-    message = response.json()
-    assert response.json()["msg"] != ''
-    today= main.get_today_date()
-    if today in comments_reviewer.messages.keys():
-        lines = comments_reviewer.messages.get(today, [''])
-        assert message['msg'] in lines
-        print(message['msg'])
+    if date.today().weekday() != 3:
+        assert response.json()["msg"] == "Either today is not Thursday or data is not available for this date"
     else:
-        print(f'For {today} there is no comment reviewer message')
+        assert response.json()["msg"] != ''
+
+#Test for distinct reviewers
+@patch('messages.comments_reviewer.first_reviewers', ['user1'])
+@patch('messages.comments_reviewer.first_reviewers', ['user2'])
+def test_get_distinct_reviewers_different():
+    "Test getting distinct reviewer"
+    message = main.get_distinct_reviewers()
+    assert message == "user1, user2 are comments reviewers" or "user2, user1 are comments reviewers"
+
+#Test for exception when both reviewers are same
+@patch('messages.comments_reviewer.first_reviewers', ['user1'])
+@patch('messages.comments_reviewer.second_reviewers', ['user1'])
+@mock.patch('utils.custom_exception.RecursionDepthLimitException')
+def test_check_no_same_comment_reviewer(mock_exception):
+    "Test getting distinct reviewer"
+    mock_exception.return_value == "Both reviewers are same"
+    with pytest.raises(Exception) as mock_exception.return_value:
+        assert main.get_distinct_reviewers.call_count == 1
+
+
+@patch('messages.comments_reviewer.first_reviewers', ['user1','user2','user3'])
+@mock.patch('main.get_first_comment_reviewer_cycle_index')
+@mock.patch('main.set_first_comment_reviewer_cycle_index')
+def test_get_first_reviewer(mock_get_index,mock_set_index):
+    "Test for get_first_reviewer method"
+    mock_get_index.return_value = {'Qxf2':0}
+
+    mock_set_index.return_value = {'Qxf2':1}
+    result = main.get_first_reviewer('Qxf2')
+    assert result == 'user1' or 'user2' or 'user3'
+
+    mock_set_index.return_value = {'Qxf2':2}
+    result1 = main.get_first_reviewer('Qxf2')
+    assert result1 != result
+
+    mock_set_index.return_value = {'Qxf2':3}
+    result2 = main.get_first_reviewer('Qxf2')
+    assert result2 != result or result1
+
+    mock_set_index.return_value = {'Qxf2':4}
+    result4 = main.get_first_reviewer('Qxf2')
+    assert result4 == 'user1' or 'user2' or 'user3'
+
+@patch('messages.comments_reviewer.second_reviewers', ['user1','user2','user3'])
+@mock.patch('main.get_second_comment_reviewer_cycle_index')
+@mock.patch('main.set_second_comment_reviewer_cycle_index')
+def test_get_first_reviewer(mock_get_index,mock_set_index):
+    "Test for get_second_reviewer method"
+    mock_get_index.return_value = {'Qxf2':0}
+
+    mock_set_index.return_value = {'Qxf2':1}
+    result = main.get_second_reviewer('Qxf2')
+    assert result == 'user1' or 'user2' or 'user3'
+
+    mock_set_index.return_value = {'Qxf2':2}
+    result1 = main.get_second_reviewer('Qxf2')
+    assert result1 != result
+
+    mock_set_index.return_value = {'Qxf2':3}
+    result2 = main.get_second_reviewer('Qxf2')
+    assert result2 != result or result1
+
+    mock_set_index.return_value = {'Qxf2':4}
+    result4 = main.get_second_reviewer('Qxf2')
+    assert result4 == 'user1' or 'user2' or 'user3'
+
+@patch('messages.comments_reviewer.first_reviewers', ['user1','user2','user3'])
+@mock.patch('main.get_first_comment_reviewer_cycle_index')
+def test_get_unique_first_reviewer(mock_get_index):
+    "checking unique second reviewers"
+    mock_get_index.return_value = {'Qxf2':0}
+
+    result = main.get_first_reviewer('Qxf2')
+    assert result == 'user1'
+
+    result = main.get_first_reviewer('Qxf2')
+    assert result == 'user2'
+
+    result = main.get_first_reviewer('Qxf2')
+    assert result == 'user3'
+
+    result = main.get_first_reviewer('Qxf2')
+    assert result == 'user1'
+
+@patch('messages.comments_reviewer.second_reviewers', ['user1','user2','user3'])
+@mock.patch('main.get_second_comment_reviewer_cycle_index')
+def test_get_unique_second_reviewer(mock_get_index):
+    "checking unique second reviewers"
+    mock_get_index.return_value = {'Qxf2':0}
+
+    result = main.get_second_reviewer('Qxf2')
+    assert result == 'user1'
+
+    result = main.get_second_reviewer('Qxf2')
+    assert result == 'user2'
+
+    result = main.get_second_reviewer('Qxf2')
+    assert result == 'user3'
+
+    result = main.get_second_reviewer('Qxf2')
+    assert result == 'user1'

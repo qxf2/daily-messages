@@ -2,20 +2,29 @@
 Endpoints for reminders and daily messages
 """
 import datetime
-import os
+import os,sys
 import pickle
 import random
+from datetime import date
 from fastapi import FastAPI
 from messages import reminders
 from messages import senior_qa_training
 from messages import comments_reviewer
+from utils.custom_exception import RecursionDepthLimitException
+from messages import desk_exercises
+from messages import desk_exercises
 app = FastAPI()
+
 
 CURR_FILE_PATH = os.path.dirname(os.path.abspath(__file__))
 MESSAGES_PATH = os.path.join(CURR_FILE_PATH, 'messages')
 CULTURE_FILE = os.path.join(MESSAGES_PATH, 'culture.txt')
 SEP20_INTERNS_FILE = os.path.join(MESSAGES_PATH, 'sep20_interns.txt')
 SENIOR_QA_TRAINING_PICKLE = os.path.join(MESSAGES_PATH, 'senior_qa_training.pickle')
+FIRST_REVIEWER_PICKLE = os.path.join(MESSAGES_PATH, 'first_reviewer.pickle')
+SECOND_REVIEWER_PICKLE = os.path.join(MESSAGES_PATH, 'second_reviewer.pickle')
+DESK_EXERCISES_PICKLE = os.path.join(MESSAGES_PATH, 'desk_exercises.pickle')
+
 
 def get_pickle_contents(filename):
     "Return the first variable of a pickle file"
@@ -30,6 +39,17 @@ def update_pickle_contents(filename, content):
     "Update the contents of the pickle file"
     with open(filename, 'wb+') as file_handler:
         pickle.dump(content, file_handler)
+
+def get_desk_exercise_index():
+    "Return the exercise index dict"
+    exercise_index_dict = get_pickle_contents(DESK_EXERCISES_PICKLE)
+    exercise_index_dict = {} if exercise_index_dict is None else exercise_index_dict
+
+    return exercise_index_dict
+
+def set_desk_exercise_index(exercise_index_dict):
+    "Update the exercise index dict for desk exercises"
+    update_pickle_contents(DESK_EXERCISES_PICKLE, exercise_index_dict)
 
 def get_senior_qa_training_user_index():
     "Return the user index dict"
@@ -55,8 +75,74 @@ def get_messages_from_file(filename):
     lines = []
     with open(filename, 'r') as file_handler:
         lines = file_handler.readlines()
+    lines = [line.strip() for line in lines]
 
     return lines
+
+def get_first_comment_reviewer_cycle_index():
+    "Return cycle index for comment reviewers"
+    cycle_index_dict = get_pickle_contents(FIRST_REVIEWER_PICKLE)
+    cycle_index_dict = {} if cycle_index_dict is None else cycle_index_dict
+
+    return cycle_index_dict
+
+def set_first_comment_reviewer_cycle_index(cycle_index_dict):
+    "Update cycle index for comment reviewers"
+    update_pickle_contents(FIRST_REVIEWER_PICKLE, cycle_index_dict)
+
+def get_second_comment_reviewer_cycle_index():
+    "Return user index for comment reviewers"
+    cycle_index_dict = get_pickle_contents(SECOND_REVIEWER_PICKLE)
+    cycle_index_dict = {} if cycle_index_dict is None else cycle_index_dict
+
+    return cycle_index_dict
+
+def set_second_comment_reviewer_cycle_index(cycle_index_dict):
+    "Update cycle index for comment reviewers"
+    update_pickle_contents(SECOND_REVIEWER_PICKLE, cycle_index_dict)
+
+def get_first_reviewer(cycle1: str = ''):
+    "get first reviewer"
+    lines = comments_reviewer.first_reviewers
+    if cycle1:
+        cycle_index_dict = get_first_comment_reviewer_cycle_index()
+        reviewer1_index = cycle_index_dict.get(cycle1, 0)
+        first_reviewer = lines[reviewer1_index%len(lines)]
+        cycle_index_dict[cycle1] = reviewer1_index + 1
+        set_first_comment_reviewer_cycle_index(cycle_index_dict)
+    else:
+        first_reviewer = random.choice(lines).strip()
+
+    return first_reviewer
+
+def get_second_reviewer(cycle2: str = ''):
+    "get second reviewer"
+    lines = comments_reviewer.second_reviewers
+    if cycle2:
+        cycle_index_dict = get_second_comment_reviewer_cycle_index()
+        reviewer2_index = cycle_index_dict.get(cycle2, 0)
+        second_reviewer = lines[reviewer2_index%len(lines)]
+        cycle_index_dict[cycle2] = reviewer2_index + 1
+        set_second_comment_reviewer_cycle_index(cycle_index_dict)
+    else:
+        second_reviewer = random.choice(lines).strip()
+
+    return second_reviewer
+
+def get_distinct_reviewers():
+    "Getting distinct reviewers"
+    first_reviewer = get_first_reviewer()
+    second_reviewer = get_second_reviewer()
+    try:
+        if first_reviewer != second_reviewer:
+            message = f"{first_reviewer}, {second_reviewer} are comments reviewers"
+        elif first_reviewer == second_reviewer:
+            raise RecursionDepthLimitException("Both reviewers are same")
+    except RecursionDepthLimitException as e:
+        if e.data == "Both reviewers are same":
+           message = get_distinct_reviewers()
+
+    return message
 
 @app.get("/")
 def index():
@@ -70,7 +156,12 @@ def get_message():
     lines = get_messages_from_file(CULTURE_FILE)
     message = random.choice(lines)
 
-    return {'msg':message.strip()}
+    return {'msg':message}
+
+@app.get("/culture/all")
+def get_all_culture_messages():
+    "Return all available culture messages"
+    return {'msg':get_messages_from_file(CULTURE_FILE)}
 
 @app.get("/reminder")
 def get_reminder():
@@ -80,14 +171,14 @@ def get_reminder():
     lines = reminders.messages.get(weekday, [''])
     message = "<b>Reminder:</b> " + random.choice(lines)
 
-    return {'msg':message.strip()}
+    return {'msg':message}
 
 @app.get("/sep20-interns")
 def get_sep20_message():
     "Return a message for the Sep 2020 internship"
     lines = get_messages_from_file(SEP20_INTERNS_FILE)
 
-    return {'msg': random.choice(lines).strip()}
+    return {'msg': random.choice(lines)}
 
 @app.get("/training")
 def get_snior_qa_training_message(user: str = ''):
@@ -101,18 +192,41 @@ def get_snior_qa_training_message(user: str = ''):
         user_index_dict[user] = message_index + 1
         set_senior_qa_training_user_index(user_index_dict)
     else:
-        message = random.choice(lines).strip()
+        message = random.choice(lines)
 
     return {'msg': message}
 
 @app.get("/comment-reviewers")
 def get_comment_reviewers():
+    """
     "Returns message including comment reviewers names"
-    today= get_today_date()
-    if today in comments_reviewer.messages.keys():
-        lines = comments_reviewer.messages.get(today, [''])
-        message = lines
+    """
+    if date.today().weekday() == 3:
+        message = get_distinct_reviewers()
     else:
         message = "Either today is not Thursday or data is not available for this date"
 
+    return {'msg': message}
+
+@app.get("/desk-exercise")
+def get_desk_exercise_message(exercise: str = ''):
+    "Returns daily-desk exercise message"
+    lines = desk_exercises.messages
+    message_index_dict = {}
+    if exercise:
+        exercise_index_dict = get_desk_exercise_index()
+        message_index = exercise_index_dict.get(exercise, 0)
+        message = lines[message_index%len(lines)]
+        exercise_index_dict[exercise] = message_index + 1
+        set_desk_exercise_index(exercise_index_dict)
+    else:
+        message = random.choice(lines)
+
     return {'msg':message}
+
+@app.get("/desk-exercise/all")
+def get_all_desk_exercise_message():
+    "Returns all desk-exercise messages"
+    lines = desk_exercises.messages
+
+    return {'msg':lines}
