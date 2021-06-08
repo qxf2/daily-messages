@@ -10,7 +10,7 @@ MESSAGES_DIR = os.path.join(REPO_DIR, 'messages')
 TESTS_DIR = os.path.join(REPO_DIR, 'tests')
 
 # Declaring files to delete
-PICKLE_FILE_DELETE = ['senior_qa_training.pickle']
+PICKLE_FILE_DELETE = ['senior_qa_training.pickle','first_reviewer.pickle','second_reviewer.pickle']
 PACT_JSON = ['qxf2_employee_messages_lambda-qxf2_daily_messages_microservices.json']
 
 # Delete file
