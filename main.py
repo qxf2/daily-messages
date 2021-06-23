@@ -55,6 +55,7 @@ def get_messages_from_file(filename):
     lines = []
     with open(filename, 'r') as file_handler:
         lines = file_handler.readlines()
+    lines = [line.strip() for line in lines]
 
     return lines
 
@@ -70,7 +71,12 @@ def get_message():
     lines = get_messages_from_file(CULTURE_FILE)
     message = random.choice(lines)
 
-    return {'msg':message.strip()}
+    return {'msg':message}
+
+@app.get("/culture/all")
+def get_all_culture_messages():
+    "Return all available culture messages"
+    return {'msg':get_messages_from_file(CULTURE_FILE)}
 
 @app.get("/reminder")
 def get_reminder():
@@ -80,14 +86,14 @@ def get_reminder():
     lines = reminders.messages.get(weekday, [''])
     message = "<b>Reminder:</b> " + random.choice(lines)
 
-    return {'msg':message.strip()}
+    return {'msg':message}
 
 @app.get("/sep20-interns")
 def get_sep20_message():
     "Return a message for the Sep 2020 internship"
     lines = get_messages_from_file(SEP20_INTERNS_FILE)
 
-    return {'msg': random.choice(lines).strip()}
+    return {'msg': random.choice(lines)}
 
 @app.get("/training")
 def get_snior_qa_training_message(user: str = ''):
@@ -101,7 +107,7 @@ def get_snior_qa_training_message(user: str = ''):
         user_index_dict[user] = message_index + 1
         set_senior_qa_training_user_index(user_index_dict)
     else:
-        message = random.choice(lines).strip()
+        message = random.choice(lines)
 
     return {'msg': message}
 
