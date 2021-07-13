@@ -1,7 +1,7 @@
 """
 Test for main page using fastapi test client.
 """
-import datetime
+# import datetime
 import os
 import sys
 from datetime import date
@@ -14,8 +14,8 @@ import main
 from main import app
 from messages import reminders
 from messages import senior_qa_training
-from messages import comments_reviewer
-from utils.custom_exception import RecursionDepthLimitException
+# from messages import comments_reviewer
+# from utils.custom_exception import RecursionDepthLimitException
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Declaring test client

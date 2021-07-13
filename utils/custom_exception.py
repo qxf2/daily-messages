@@ -1,6 +1,5 @@
 from builtins import Exception
 
-
 class RecursionDepthLimitException(Exception):
     def __init__(self, data):
         self.data = data
