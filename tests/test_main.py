@@ -1,17 +1,21 @@
 """
 Test for main page using fastapi test client.
 """
+# import datetime
 import os
 import sys
 from datetime import date
 import pytest
 from unittest.mock import patch
+# from unittest.mock import Mock
 import mock
 from fastapi.testclient import TestClient
 import main
 from main import app
 from messages import reminders
 from messages import senior_qa_training
+# from messages import comments_reviewer
+# from utils.custom_exception import RecursionDepthLimitException
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Declaring test client
@@ -133,7 +137,7 @@ def test_get_distinct_reviewers_different():
 #Test for exception when both reviewers are same
 @patch('messages.comments_reviewer.first_reviewers', ['user1'])
 @patch('messages.comments_reviewer.second_reviewers', ['user1'])
-@mock.patch(RecursionDepthLimitException)
+@mock.patch('utils.custom_exception.RecursionDepthLimitException')
 def test_check_no_same_comment_reviewer(mock_exception):
     "Test getting distinct reviewer"
     mock_exception.return_value == "Both reviewers are same"
