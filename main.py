@@ -2,7 +2,8 @@
 Endpoints for reminders and daily messages
 """
 import datetime
-import os,sys
+import os
+# import sys 
 import pickle
 import random
 from datetime import date
