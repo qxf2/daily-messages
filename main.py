@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from messages import reminders
 from messages import senior_qa_training
 from messages import comments_reviewer
+from messages import desk_exercises
 app = FastAPI()
 
 CURR_FILE_PATH = os.path.dirname(os.path.abspath(__file__))
@@ -16,6 +17,7 @@ MESSAGES_PATH = os.path.join(CURR_FILE_PATH, 'messages')
 CULTURE_FILE = os.path.join(MESSAGES_PATH, 'culture.txt')
 SEP20_INTERNS_FILE = os.path.join(MESSAGES_PATH, 'sep20_interns.txt')
 SENIOR_QA_TRAINING_PICKLE = os.path.join(MESSAGES_PATH, 'senior_qa_training.pickle')
+DESK_EXERCISES_PICKLE = os.path.join(MESSAGES_PATH, 'desk_exercises.pickle')
 
 def get_pickle_contents(filename):
     "Return the first variable of a pickle file"
@@ -30,6 +32,17 @@ def update_pickle_contents(filename, content):
     "Update the contents of the pickle file"
     with open(filename, 'wb+') as file_handler:
         pickle.dump(content, file_handler)
+
+def get_desk_exercise_index():
+    "Return the exercise index dict"
+    exercise_index_dict = get_pickle_contents(DESK_EXERCISES_PICKLE)
+    exercise_index_dict = {} if exercise_index_dict is None else exercise_index_dict
+
+    return exercise_index_dict
+
+def set_desk_exercise_index(exercise_index_dict):
+    "Update the exercise index dict for desk exercises"
+    update_pickle_contents(DESK_EXERCISES_PICKLE, exercise_index_dict)
 
 def get_senior_qa_training_user_index():
     "Return the user index dict"
@@ -122,3 +135,26 @@ def get_comment_reviewers():
         message = "Either today is not Thursday or data is not available for this date"
 
     return {'msg':message}
+
+@app.get("/desk-exercise")
+def get_desk_exercise_message(exercise: str = ''):
+    "Returns daily-desk exercise message"
+    lines = desk_exercises.messages
+    message_index_dict = {}
+    if exercise:
+        exercise_index_dict = get_desk_exercise_index()
+        message_index = exercise_index_dict.get(exercise, 0)
+        message = lines[message_index%len(lines)]
+        exercise_index_dict[exercise] = message_index + 1
+        set_desk_exercise_index(exercise_index_dict)
+    else:
+        message = random.choice(lines)
+    
+    return {'msg':message}
+
+@app.get("/desk-exercise/all")
+def get_all_desk_exercise_message():
+    "Returns all desk-exercise messages"
+    lines = desk_exercises.messages
+
+    return {'msg':lines}
