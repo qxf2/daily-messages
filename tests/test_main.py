@@ -12,7 +12,6 @@ from main import app
 from messages import reminders
 from messages import senior_qa_training
 from messages import comments_reviewer
-from messages import desk_exercises
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Declaring test client
@@ -106,22 +105,6 @@ def test_get_senior_training_unique_message(mock_get_index):
     assert result['msg'] == 'msg2', f"{result['msg']}"
 
     result = main.get_snior_qa_training_message('Qxf2')
-    assert result['msg'] == 'msg1', f"{result['msg']}"
-
-# Test for checking first message shown after first cycle is completed for /desk-exercise endpoint
-@patch('messages.desk_exercises.messages', ['msg1', 'msg2'])
-@patch('main.get_desk_exercise_index')
-def test_get_desk_exercise_message(mock_get_index):
-    "Test desk exercise messages cycle"
-    mock_get_index.return_value = {'exercise':0}
-
-    result = main.get_desk_exercise_message('exercise')
-    assert result['msg'] == 'msg1', f"{result['msg']}"
-
-    result = main.get_desk_exercise_message('exercise')
-    assert result['msg'] == 'msg2', f"{result['msg']}"
-
-    result = main.get_desk_exercise_message('exercise')
     assert result['msg'] == 'msg1', f"{result['msg']}"
 
 # Test for comment-reviewers status code
