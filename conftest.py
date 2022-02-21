@@ -34,4 +34,3 @@ def pytest_sessionfinish(session):
         print(f'\n{failed_amount} failure results')
         delete.delete_pickle_file()
         delete.delete_pact_json_file()
-        

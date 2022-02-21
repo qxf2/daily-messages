@@ -145,6 +145,7 @@ def test_get_desk_exercise_message(mock_get_index):
     result = main.get_desk_exercise_message('exercise')
     assert result['msg'] == 'msg1', f"{result['msg']}"
 
+
 # Test for comment-reviewers status code
 def test_get_comments():
     "asserting status code"

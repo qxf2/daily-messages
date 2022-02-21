@@ -37,3 +37,8 @@ def delete_pickle_file():
 def delete_pact_json_file():
     "This method will delete pact json file"
     delete_files_in_dir(TESTS_DIR, PACT_JSON)
+
+# Delete desk exercise pickle file
+def delete_desk_exercise_pickle():
+    "This method will delete desk exercise file"
+    delete_files_in_dir(MESSAGES_DIR, DESK_EXERCISES_PICKLE)

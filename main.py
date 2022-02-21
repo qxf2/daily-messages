@@ -12,9 +12,8 @@ from messages import senior_qa_training
 from messages import comments_reviewer
 from utils.custom_exception import RecursionDepthLimitException
 from messages import desk_exercises
-from messages import desk_exercises
-app = FastAPI()
 
+app = FastAPI()
 
 CURR_FILE_PATH = os.path.dirname(os.path.abspath(__file__))
 MESSAGES_PATH = os.path.join(CURR_FILE_PATH, 'messages')
@@ -207,6 +206,22 @@ def get_comment_reviewers():
         message = "Either today is not Thursday or data is not available for this date"
 
     return {'msg': message}
+
+@app.get("/desk-exercise")
+def get_desk_exercise_message(exercise: str = ''):
+    "Returns daily-desk exercise message"
+    lines = desk_exercises.messages
+    message_index_dict = {}
+    if exercise:
+        exercise_index_dict = get_desk_exercise_index()
+        message_index = exercise_index_dict.get(exercise, 0)
+        message = lines[message_index%len(lines)]
+        exercise_index_dict[exercise] = message_index + 1
+        set_desk_exercise_index(exercise_index_dict)
+    else:
+        message = random.choice(lines)
+
+    return {'msg':message}
 
 @app.get("/desk-exercise")
 def get_desk_exercise_message(exercise: str = ''):
