@@ -16,7 +16,6 @@ from main import app
 from messages import reminders
 from messages import senior_qa_training
 from messages import comments_reviewer
-from utils.custom_exception import RecursionDepthLimitException
 from messages import desk_exercises
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -168,17 +167,6 @@ def test_get_distinct_reviewers_different():
     "Test getting distinct reviewer"
     message = main.get_distinct_reviewers()
     assert message == "user1, user2 are comments reviewers" or "user2, user1 are comments reviewers"
-
-#Test for exception when both reviewers are same
-@patch('messages.comments_reviewer.first_reviewers', ['user1'])
-@patch('messages.comments_reviewer.second_reviewers', ['user1'])
-@mock.patch('utils.custom_exception.RecursionDepthLimitException')
-def test_check_no_same_comment_reviewer(mock_exception):
-    "Test getting distinct reviewer"
-    mock_exception.return_value == "Both reviewers are same"
-    with pytest.raises(Exception) as mock_exception.return_value:
-        assert main.get_distinct_reviewers.call_count == 1
-
 
 @patch('messages.comments_reviewer.first_reviewers', ['user1','user2','user3'])
 @mock.patch('main.get_first_comment_reviewer_cycle_index')

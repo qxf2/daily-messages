@@ -2,7 +2,7 @@
 Endpoints for reminders and daily messages
 """
 import datetime
-import os,sys
+import os
 import pickle
 import random
 from datetime import date
@@ -10,7 +10,6 @@ from fastapi import FastAPI
 from messages import reminders
 from messages import senior_qa_training
 from messages import comments_reviewer
-from utils.custom_exception import RecursionDepthLimitException
 from messages import desk_exercises
 
 app = FastAPI()
@@ -132,15 +131,8 @@ def get_distinct_reviewers():
     "Getting distinct reviewers"
     first_reviewer = get_first_reviewer()
     second_reviewer = get_second_reviewer()
-    try:
-        if first_reviewer != second_reviewer:
-            message = f"{first_reviewer}, {second_reviewer} are comments reviewers"
-        elif first_reviewer == second_reviewer:
-            raise RecursionDepthLimitException("Both reviewers are same")
-    except RecursionDepthLimitException as e:
-        if e.data == "Both reviewers are same":
-           message = get_distinct_reviewers()
-
+    message = f"{first_reviewer}, {second_reviewer} are comments reviewers"
+    
     return message
 
 @app.get("/")
