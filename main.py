@@ -5,11 +5,13 @@ import datetime
 import os
 import pickle
 import random
+from datetime import date
 from fastapi import FastAPI
 from messages import reminders
 from messages import senior_qa_training
 from messages import comments_reviewer
 from messages import desk_exercises
+
 app = FastAPI()
 
 CURR_FILE_PATH = os.path.dirname(os.path.abspath(__file__))
@@ -17,7 +19,10 @@ MESSAGES_PATH = os.path.join(CURR_FILE_PATH, 'messages')
 CULTURE_FILE = os.path.join(MESSAGES_PATH, 'culture.txt')
 SEP20_INTERNS_FILE = os.path.join(MESSAGES_PATH, 'sep20_interns.txt')
 SENIOR_QA_TRAINING_PICKLE = os.path.join(MESSAGES_PATH, 'senior_qa_training.pickle')
+FIRST_REVIEWER_PICKLE = os.path.join(MESSAGES_PATH, 'first_reviewer.pickle')
+SECOND_REVIEWER_PICKLE = os.path.join(MESSAGES_PATH, 'second_reviewer.pickle')
 DESK_EXERCISES_PICKLE = os.path.join(MESSAGES_PATH, 'desk_exercises.pickle')
+
 
 def get_pickle_contents(filename):
     "Return the first variable of a pickle file"
@@ -71,6 +76,64 @@ def get_messages_from_file(filename):
     lines = [line.strip() for line in lines]
 
     return lines
+
+def get_first_comment_reviewer_cycle_index():
+    "Return cycle index for comment reviewers"
+    cycle_index_dict = get_pickle_contents(FIRST_REVIEWER_PICKLE)
+    cycle_index_dict = {} if cycle_index_dict is None else cycle_index_dict
+
+    return cycle_index_dict
+
+def set_first_comment_reviewer_cycle_index(cycle_index_dict):
+    "Update cycle index for comment reviewers"
+    update_pickle_contents(FIRST_REVIEWER_PICKLE, cycle_index_dict)
+
+def get_second_comment_reviewer_cycle_index():
+    "Return user index for comment reviewers"
+    cycle_index_dict = get_pickle_contents(SECOND_REVIEWER_PICKLE)
+    cycle_index_dict = {} if cycle_index_dict is None else cycle_index_dict
+
+    return cycle_index_dict
+
+def set_second_comment_reviewer_cycle_index(cycle_index_dict):
+    "Update cycle index for comment reviewers"
+    update_pickle_contents(SECOND_REVIEWER_PICKLE, cycle_index_dict)
+
+def get_first_reviewer(cycle1: str = ''):
+    "get first reviewer"
+    lines = comments_reviewer.first_reviewers
+    if cycle1:
+        cycle_index_dict = get_first_comment_reviewer_cycle_index()
+        reviewer1_index = cycle_index_dict.get(cycle1, 0)
+        first_reviewer = lines[reviewer1_index%len(lines)]
+        cycle_index_dict[cycle1] = reviewer1_index + 1
+        set_first_comment_reviewer_cycle_index(cycle_index_dict)
+    else:
+        first_reviewer = random.choice(lines).strip()
+
+    return first_reviewer
+
+def get_second_reviewer(cycle2: str = ''):
+    "get second reviewer"
+    lines = comments_reviewer.second_reviewers
+    if cycle2:
+        cycle_index_dict = get_second_comment_reviewer_cycle_index()
+        reviewer2_index = cycle_index_dict.get(cycle2, 0)
+        second_reviewer = lines[reviewer2_index%len(lines)]
+        cycle_index_dict[cycle2] = reviewer2_index + 1
+        set_second_comment_reviewer_cycle_index(cycle_index_dict)
+    else:
+        second_reviewer = random.choice(lines).strip()
+
+    return second_reviewer
+
+def get_distinct_reviewers():
+    "Getting distinct reviewers"
+    first_reviewer = get_first_reviewer()
+    second_reviewer = get_second_reviewer()
+    message = f"{first_reviewer}, {second_reviewer} are comments reviewers"
+    
+    return message
 
 @app.get("/")
 def index():
@@ -126,13 +189,29 @@ def get_snior_qa_training_message(user: str = ''):
 
 @app.get("/comment-reviewers")
 def get_comment_reviewers():
+    """
     "Returns message including comment reviewers names"
-    today= get_today_date()
-    if today in comments_reviewer.messages.keys():
-        lines = comments_reviewer.messages.get(today, [''])
-        message = lines
+    """
+    if date.today().weekday() == 3:
+        message = get_distinct_reviewers()
     else:
         message = "Either today is not Thursday or data is not available for this date"
+
+    return {'msg': message}
+
+@app.get("/desk-exercise")
+def get_desk_exercise_message(exercise: str = ''):
+    "Returns daily-desk exercise message"
+    lines = desk_exercises.messages
+    message_index_dict = {}
+    if exercise:
+        exercise_index_dict = get_desk_exercise_index()
+        message_index = exercise_index_dict.get(exercise, 0)
+        message = lines[message_index%len(lines)]
+        exercise_index_dict[exercise] = message_index + 1
+        set_desk_exercise_index(exercise_index_dict)
+    else:
+        message = random.choice(lines)
 
     return {'msg':message}
 
