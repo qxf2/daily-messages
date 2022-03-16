@@ -18,6 +18,7 @@ from messages import senior_qa_training
 from messages import comments_reviewer
 from messages import desk_exercises
 from messages import icebreaker
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Declaring test client
@@ -182,8 +183,6 @@ def test_get_first_reviewer(mock_get_index,mock_set_index):
 
     mock_set_index.return_value = {'Qxf2':2}
     result1 = main.get_first_reviewer('Qxf2')
-    result = main.get_icebreaker_message('icebreaker')
-    assert result['msg'] == 'msg1', f"{result['msg']}"
     assert result1 != result
 
     mock_set_index.return_value = {'Qxf2':3}

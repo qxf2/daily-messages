@@ -25,7 +25,6 @@ SECOND_REVIEWER_PICKLE = os.path.join(MESSAGES_PATH, 'second_reviewer.pickle')
 DESK_EXERCISES_PICKLE = os.path.join(MESSAGES_PATH, 'desk_exercises.pickle')
 ICEBRAKER_PICKLE = os.path.join(MESSAGES_PATH, 'icebreaker.pickle')
 
-
 def get_pickle_contents(filename):
     "Return the first variable of a pickle file"
     contents = None
