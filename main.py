@@ -11,6 +11,7 @@ from messages import reminders
 from messages import senior_qa_training
 from messages import comments_reviewer
 from messages import desk_exercises
+from messages import icebreaker
 
 app = FastAPI()
 
@@ -22,7 +23,7 @@ SENIOR_QA_TRAINING_PICKLE = os.path.join(MESSAGES_PATH, 'senior_qa_training.pick
 FIRST_REVIEWER_PICKLE = os.path.join(MESSAGES_PATH, 'first_reviewer.pickle')
 SECOND_REVIEWER_PICKLE = os.path.join(MESSAGES_PATH, 'second_reviewer.pickle')
 DESK_EXERCISES_PICKLE = os.path.join(MESSAGES_PATH, 'desk_exercises.pickle')
-
+ICEBRAKER_PICKLE = os.path.join(MESSAGES_PATH, 'icebreaker.pickle')
 
 def get_pickle_contents(filename):
     "Return the first variable of a pickle file"
@@ -48,6 +49,17 @@ def get_desk_exercise_index():
 def set_desk_exercise_index(exercise_index_dict):
     "Update the exercise index dict for desk exercises"
     update_pickle_contents(DESK_EXERCISES_PICKLE, exercise_index_dict)
+
+def get_icebraker_index():
+    "Return the exercise index dict"
+    icebraker_index_dict = get_pickle_contents(ICEBRAKER_PICKLE)
+    icebraker_index_dict = {} if icebraker_index_dict is None else icebraker_index_dict
+
+    return icebraker_index_dict
+
+def set_icebraker_index(icebraker_index_dict):
+    "Update the exercise index dict for icebraker exercises"
+    update_pickle_contents(ICEBRAKER_PICKLE, icebraker_index_dict)
 
 def get_senior_qa_training_user_index():
     "Return the user index dict"
@@ -215,25 +227,32 @@ def get_desk_exercise_message(exercise: str = ''):
 
     return {'msg':message}
 
-@app.get("/desk-exercise")
-def get_desk_exercise_message(exercise: str = ''):
-    "Returns daily-desk exercise message"
+@app.get("/desk-exercise/all")
+def get_all_desk_exercise_message():
+    "Returns all desk-exercise messages"
     lines = desk_exercises.messages
+
+    return {'msg':lines}
+
+@app.get("/icebreaker")
+def get_icebreaker_message(ice: str = ''):
+    "Returns daily-icebraker exercise message"
+    lines = icebreaker.messages
     message_index_dict = {}
-    if exercise:
-        exercise_index_dict = get_desk_exercise_index()
-        message_index = exercise_index_dict.get(exercise, 0)
+    if ice:
+        icebraker_index_dict = get_icebraker_index()
+        message_index = icebraker_index_dict.get(ice, 0)
         message = lines[message_index%len(lines)]
-        exercise_index_dict[exercise] = message_index + 1
-        set_desk_exercise_index(exercise_index_dict)
+        icebraker_index_dict[ice] = message_index + 1
+        set_icebraker_index(icebraker_index_dict)
     else:
         message = random.choice(lines)
 
     return {'msg':message}
 
-@app.get("/desk-exercise/all")
-def get_all_desk_exercise_message():
-    "Returns all desk-exercise messages"
-    lines = desk_exercises.messages
+@app.get("/icebreaker/all")
+def get_all_icebreaker_message():
+    "Returns all icebraker messages"
+    lines = icebreaker.messages
 
     return {'msg':lines}

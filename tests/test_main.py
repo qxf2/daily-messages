@@ -17,6 +17,8 @@ from messages import reminders
 from messages import senior_qa_training
 from messages import comments_reviewer
 from messages import desk_exercises
+from messages import icebreaker
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Declaring test client
@@ -249,3 +251,25 @@ def test_get_unique_second_reviewer(mock_get_index):
 
     result = main.get_second_reviewer('Qxf2')
     assert result == 'user1'
+    
+# Test for icebreaker status code
+def test_get_icebreaker():
+    "asserting status code"
+    response = client.get("/icebreaker")
+    assert response.status_code == 200
+
+# Test for checking message genearted for icebreaker is always new
+@patch('messages.icebreaker.messages', ['msg1', 'msg2'])
+@patch('main.get_icebraker_index')
+def test_get_icebreaker_message(mock_get_index):
+    "Test icebreaker messages cycle"
+    mock_get_index.return_value = {'icebreaker':0}
+
+    result = main.get_icebreaker_message('icebreaker')
+    assert result['msg'] == 'msg1', f"{result['msg']}"
+
+    result = main.get_icebreaker_message('icebreaker')
+    assert result['msg'] == 'msg2', f"{result['msg']}"
+
+    result = main.get_icebreaker_message('icebreaker')
+    assert result['msg'] == 'msg1', f"{result['msg']}"
